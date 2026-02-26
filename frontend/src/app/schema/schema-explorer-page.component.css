@@ -1,11 +1,10 @@
 .container {
-  padding: var(--space-9) 0 var(--space-12);
+  padding: var(--space-10) 0 var(--space-12);
 }
 
 .meta {
   margin-bottom: var(--space-4);
-  display: grid;
-  gap: var(--space-2);
+  display: block;
   font-size: 0.9rem;
   min-width: 0;
 }
@@ -15,16 +14,15 @@
 }
 
 .eyebrow {
-  margin: 0;
+  margin-bottom: var(--space-2);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: var(--space-2);
   opacity: 0.8;
 }
 
 .page-title {
-  margin: 0;
+  margin: 0 0 1.1rem;
   line-height: 1.2;
   font-size: clamp(1.9rem, 4vw, 2.8rem);
   font-weight: 600;
