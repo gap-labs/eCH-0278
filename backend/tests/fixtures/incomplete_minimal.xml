@@ -1,0 +1,6 @@
+<eCH-0278:naturalPersonTaxData xmlns:eCH-0278="http://www.ech.ch/xmlns/eCH-0278/1">
+  <eCH-0278:personalEmploymentAndFamilyStatus />
+  <eCH-0278:domesticAndForeignIncome />
+  <eCH-0278:deductions />
+  <eCH-0278:domesticAndForeignAssets />
+</eCH-0278:naturalPersonTaxData>
