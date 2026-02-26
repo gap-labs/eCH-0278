@@ -1,22 +1,49 @@
 :host {
   display: block;
-  --mat-list-list-item-one-line-container-height: 44px;
+  --mat-list-list-item-one-line-container-height: 34px;
 }
 
 mat-card-content {
   display: grid;
-  gap: var(--space-4);
-  line-height: 1.45;
+  gap: var(--space-2);
+  line-height: 1.22;
+  min-width: 0;
 }
 
 mat-list {
   padding-top: 0;
+  min-width: 0;
+}
+
+:host ::ng-deep .mat-mdc-list-item.mdc-list-item {
+  height: auto;
+  min-height: 34px;
+  align-items: flex-start;
+}
+
+:host ::ng-deep .mat-mdc-list-item .mdc-list-item__content {
+  white-space: normal;
+}
+
+:host ::ng-deep .mat-mdc-list-item .mdc-list-item__primary-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.14;
+}
+
+:host ::ng-deep .highlighted-groups-list .highlighted-groups-item.mat-mdc-list-item.mdc-list-item {
+  min-height: 30px;
+}
+
+:host ::ng-deep .highlighted-groups-list .highlighted-groups-item .mdc-list-item__primary-text {
+  line-height: 1.08;
 }
 
 h3 {
-  margin: 0 0 var(--space-2);
+  margin: 0;
   font-size: 1rem;
-  line-height: 1.35;
+  line-height: 1.22;
 }
 
 mat-chip-listbox {
@@ -25,5 +52,5 @@ mat-chip-listbox {
 
 mat-chip-option {
   margin-right: var(--space-2);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
 }

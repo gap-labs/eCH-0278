@@ -6,7 +6,9 @@
     <mat-list>
       <mat-list-item>Name: {{ node.name }}</mat-list-item>
       <mat-list-item>Kind: {{ node.kind }}</mat-list-item>
-      <mat-list-item *ngIf="node.type">Type: {{ node.type }}</mat-list-item>
+      <mat-list-item *ngIf="node.type || (node.kind === 'element' && (node.children.length > 0 || node.attributes.length > 0))">
+        Type: {{ node.type ?? 'inline complexType' }}
+      </mat-list-item>
       <mat-list-item *ngIf="node.cardinality">
         Cardinality: {{ node.cardinality.min }}..{{ node.cardinality.max }}
       </mat-list-item>
@@ -30,8 +32,9 @@
       </mat-list>
 
       <h3>Highlighted Groups</h3>
-      <mat-list>
+      <mat-list class="highlighted-groups-list">
         <mat-list-item
+          class="highlighted-groups-item"
           *ngFor="let attribute of node.attributes"
           [style.fontWeight]="highlightedGroups.has(attribute.source ?? '') ? '600' : '400'"
         >
