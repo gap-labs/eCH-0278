@@ -1,0 +1,29 @@
+<main id="main-content" class="container" tabindex="-1" *ngIf="!loading; else loadingBlock">
+  <div class="error" *ngIf="error">{{ error }}</div>
+
+  <div *ngIf="!error" class="meta" [attr.data-test]="'schema-meta'">
+    <p class="eyebrow">Swiss Technical Advisory</p>
+    <h1 class="page-title">Schema Explorer</h1>
+    <div *ngIf="summary">Namespace: {{ summary.targetNamespace }}</div>
+  </div>
+
+  <mat-sidenav-container *ngIf="!error" class="schema-layout">
+    <mat-sidenav mode="side" opened>
+      <app-schema-tree
+        [root]="rootNode"
+        [selectedNode]="selectedNode"
+        (nodeSelected)="onNodeSelected($event)"
+      ></app-schema-tree>
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <app-schema-node-details [node]="selectedNode"></app-schema-node-details>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</main>
+
+<ng-template #loadingBlock>
+  <div class="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+  </div>
+</ng-template>

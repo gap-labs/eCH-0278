@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from app.comparison import compare_xml
+from app.schema_explorer import get_schema_summary, get_schema_tree
 from app.validation import validate_xml
 
 app = FastAPI()
@@ -17,3 +18,13 @@ async def compare(xml1: UploadFile = File(...), xml2: UploadFile = File(...)):
     xml2_content = await xml2.read()
     result = compare_xml(xml1_content, xml2_content)
     return result
+
+
+@app.get("/api/schema/summary")
+async def schema_summary():
+    return get_schema_summary()
+
+
+@app.get("/api/schema/tree")
+async def schema_tree():
+    return get_schema_tree()

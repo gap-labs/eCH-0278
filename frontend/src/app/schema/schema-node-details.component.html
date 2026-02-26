@@ -1,0 +1,48 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Node Details</mat-card-title>
+  </mat-card-header>
+  <mat-card-content *ngIf="node; else emptyState">
+    <mat-list>
+      <mat-list-item>Name: {{ node.name }}</mat-list-item>
+      <mat-list-item>Kind: {{ node.kind }}</mat-list-item>
+      <mat-list-item *ngIf="node.type">Type: {{ node.type }}</mat-list-item>
+      <mat-list-item *ngIf="node.cardinality">
+        Cardinality: {{ node.cardinality.min }}..{{ node.cardinality.max }}
+      </mat-list-item>
+    </mat-list>
+
+    <div *ngIf="node.enumeration && node.enumeration.length > 0">
+      <h3>Enumeration</h3>
+      <mat-chip-listbox>
+        <mat-chip-option *ngFor="let value of node.enumeration" disabled>{{ value }}</mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+
+    <div *ngIf="node.attributes.length > 0">
+      <h3>Context Attributes</h3>
+      <mat-list>
+        <mat-list-item *ngFor="let attribute of node.attributes">
+          {{ attribute.name }}
+          <span *ngIf="attribute.source"> ({{ attribute.source }})</span>
+          <span *ngIf="attribute.enum.length > 0">: {{ attribute.enum.join(', ') }}</span>
+        </mat-list-item>
+      </mat-list>
+
+      <h3>Highlighted Groups</h3>
+      <mat-list>
+        <mat-list-item
+          *ngFor="let attribute of node.attributes"
+          [style.fontWeight]="highlightedGroups.has(attribute.source ?? '') ? '600' : '400'"
+        >
+          {{ attribute.name }}
+          <span *ngIf="attribute.source"> from {{ attribute.source }}</span>
+        </mat-list-item>
+      </mat-list>
+    </div>
+  </mat-card-content>
+
+  <ng-template #emptyState>
+    <mat-card-content>Select a node in the tree.</mat-card-content>
+  </ng-template>
+</mat-card>
