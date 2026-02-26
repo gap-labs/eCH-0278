@@ -107,3 +107,70 @@ Compare two uploaded XML snapshot documents with a minimal leaf-value diff.
   - compares only leaf node values
   - counts added/removed leaf nodes by path and occurrence
   - does not provide a full structural diff
+
+---
+
+## GET /api/schema/summary
+
+Return basic metadata for the loaded eCH-0278 XSD.
+
+### Success Response (`200 OK`)
+
+```json
+{
+  "schemaVersion": "1.0",
+  "targetNamespace": "http://www.ech.ch/xmlns/eCH-0278/1",
+  "schemaLocation": "schema/eCH-0278-1-0.xsd",
+  "rootElements": ["naturalPersonTaxData"],
+  "topLevelTypes": ["naturalPersonTaxDataType", "headerType"]
+}
+```
+
+---
+
+## GET /api/schema/tree
+
+Return a deterministic tree representation of the XSD structure for schema exploration.
+
+### Success Response (`200 OK`)
+
+```json
+{
+  "root": {
+    "name": "naturalPersonTaxData",
+    "kind": "element",
+    "type": null,
+    "namespace": "http://www.ech.ch/xmlns/eCH-0278/1",
+    "cardinality": {
+      "min": 1,
+      "max": 1
+    },
+    "attributes": [],
+    "enumeration": null,
+    "children": [
+      {
+        "name": "header",
+        "kind": "element",
+        "type": "headerType",
+        "namespace": "http://www.ech.ch/xmlns/eCH-0278/1",
+        "cardinality": {
+          "min": 0,
+          "max": 1
+        },
+        "attributes": [],
+        "enumeration": null,
+        "children": []
+      }
+    ]
+  }
+}
+```
+
+### Notes
+
+- `kind` values are fixed: `element | complexType | simpleType | attribute`.
+- `cardinality.max` is either integer or `"unbounded"`.
+- `attributes[].source` reports attribute group origin (for example `taxProcedureGroup`).
+- Enumeration values are exposed via:
+  - node field `enumeration` (element/simpleType level)
+  - attribute field `enum` (attribute level)

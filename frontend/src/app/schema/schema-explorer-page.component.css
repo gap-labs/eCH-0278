@@ -1,0 +1,77 @@
+.container {
+  padding: var(--space-9) 0 var(--space-12);
+}
+
+.meta {
+  margin-bottom: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+  font-size: 0.9rem;
+  min-width: 0;
+}
+
+.meta > div {
+  overflow-wrap: anywhere;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-2);
+  opacity: 0.8;
+}
+
+.page-title {
+  margin: 0;
+  line-height: 1.2;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.schema-layout {
+  width: 100%;
+  min-height: calc(100vh - 260px);
+  border: 1px solid rgba(28, 27, 31, 0.12);
+  background: #fff;
+}
+
+mat-sidenav {
+  width: 360px;
+  padding: var(--space-2);
+  border-right: 1px solid rgba(28, 27, 31, 0.12);
+}
+
+mat-sidenav-content {
+  padding: var(--space-4);
+  min-width: 0;
+}
+
+.loading {
+  min-height: calc(100vh - 260px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error {
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  mat-sidenav {
+    width: min(320px, 45vw);
+  }
+}
+
+@media (max-width: 700px) {
+  mat-sidenav {
+    width: min(280px, 50vw);
+  }
+
+  mat-sidenav-content {
+    padding: var(--space-3);
+  }
+}

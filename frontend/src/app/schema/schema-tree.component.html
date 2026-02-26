@@ -1,0 +1,22 @@
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="schema-tree">
+  <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+    <button mat-icon-button disabled></button>
+    <button mat-button class="node-button" [class.selected]="isSelected(node)" (click)="onSelect(node)">
+      {{ node.name }}
+    </button>
+  </mat-tree-node>
+
+  <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+    <div class="node-row">
+      <button mat-icon-button matTreeNodeToggle>
+        {{ treeControl.isExpanded(node) ? '−' : '+' }}
+      </button>
+      <button mat-button class="node-button" [class.selected]="isSelected(node)" (click)="onSelect(node)">
+        {{ node.name }}
+      </button>
+    </div>
+    <div class="node-children" [class.hidden]="!treeControl.isExpanded(node)">
+      <ng-container matTreeNodeOutlet></ng-container>
+    </div>
+  </mat-nested-tree-node>
+</mat-tree>
