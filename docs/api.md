@@ -25,7 +25,12 @@ Validate an uploaded XML file against the normative eCH-0278 XSD.
       "prefix": "eCH-0278",
       "uri": "http://www.ech.ch/xmlns/eCH-0278/1"
     }
-  ]
+  ],
+  "analysis": {
+    "taxProceduresFound": ["declaration"],
+    "phaseDetected": "declaration",
+    "snapshotWarning": false
+  }
 }
 ```
 
@@ -44,7 +49,12 @@ The endpoint reports validation or parse issues in `errors` while returning `xsd
       "prefix": "eCH-0278",
       "uri": "http://www.ech.ch/xmlns/eCH-0278/1"
     }
-  ]
+  ],
+  "analysis": {
+    "taxProceduresFound": [],
+    "phaseDetected": "unknown",
+    "snapshotWarning": false
+  }
 }
 ```
 
@@ -53,6 +63,9 @@ The endpoint reports validation or parse issues in `errors` while returning `xsd
 - The XSD is loaded at backend startup (fail fast on schema load errors).
 - XML input is not persisted to disk.
 - `namespaces` contains detected XML namespace declarations (`prefix`, `uri`).
+- `analysis` is non-normative lifecycle interpretation based on `taxProcedure` attributes:
+  - `phaseDetected`: `declaration | taxation | mixed | unknown`
+  - `snapshotWarning`: `true` only for `mixed`
 - `errors` may include:
   - XML parse errors
   - XSD structure/content errors
