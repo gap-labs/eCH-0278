@@ -1,0 +1,14 @@
+<eCH-0278:naturalPersonTaxData xmlns:eCH-0278="http://www.ech.ch/xmlns/eCH-0278/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <eCH-0278:personalEmploymentAndFamilyStatus>
+    <eCH-0278:personalDetail person="1" />
+  </eCH-0278:personalEmploymentAndFamilyStatus>
+  <eCH-0278:domesticAndForeignIncome>
+    <eCH-0278:totalAmountRevenue taxProcedure="declaration" taxFactor="taxable" taxCompetence="cantonal">0.00</eCH-0278:totalAmountRevenue>
+  </eCH-0278:domesticAndForeignIncome>
+  <eCH-0278:deductions>
+    <eCH-0278:totalAmountDeduction taxProcedure="declaration" taxFactor="taxable" taxCompetence="cantonal">0.00</eCH-0278:totalAmountDeduction>
+  </eCH-0278:deductions>
+  <eCH-0278:domesticAndForeignAssets>
+    <eCH-0278:totalAmountAssets taxProcedure="declaration" taxFactor="taxable" taxCompetence="cantonal">0.00</eCH-0278:totalAmountAssets>
+  </eCH-0278:domesticAndForeignAssets>
+</eCH-0278:naturalPersonTaxData>
