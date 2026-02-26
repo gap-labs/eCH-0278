@@ -22,32 +22,61 @@ def _format_validation_error(error: object) -> str:
     return str(error)
 
 
-def _extract_namespaces(xml_bytes: bytes) -> list[dict]:
+def _parse_xml_once(xml_bytes: bytes) -> tuple[ET.Element | None, list[dict], str | None]:
     namespaces: dict[str, str] = {}
 
     try:
-        for _, ns in ET.iterparse(io.BytesIO(xml_bytes), events=("start-ns",)):
-            prefix, uri = ns
-            key = prefix or ""
-            if key not in namespaces:
-                namespaces[key] = uri
-    except ET.ParseError:
-        pass
+        stream = io.BytesIO(xml_bytes)
+        parser = ET.iterparse(stream, events=("start", "start-ns"))
+        for event, data in parser:
+            if event == "start-ns":
+                prefix, uri = data
+                key = prefix or ""
+                if key not in namespaces:
+                    namespaces[key] = uri
 
-    return [
-        {"prefix": prefix, "uri": uri}
-        for prefix, uri in sorted(namespaces.items(), key=lambda item: (item[0], item[1]))
-    ]
+        root = parser.root
+        ordered_namespaces = [
+            {"prefix": prefix, "uri": uri}
+            for prefix, uri in sorted(namespaces.items(), key=lambda item: (item[0], item[1]))
+        ]
+        return root, ordered_namespaces, None
+    except ET.ParseError as exc:
+        ordered_namespaces = [
+            {"prefix": prefix, "uri": uri}
+            for prefix, uri in sorted(namespaces.items(), key=lambda item: (item[0], item[1]))
+        ]
+        return None, ordered_namespaces, f"XML parse error: {exc}"
 
 
 def validate_xml(xml_bytes: bytes) -> dict:
-    namespaces = _extract_namespaces(xml_bytes)
+    namespaces: list[dict] = []
+    analysis = {
+        "taxProceduresFound": [],
+        "phaseDetected": "unknown",
+        "snapshotWarning": False,
+    }
 
     if not xml_bytes:
         return {
             "xsdValid": False,
             "errors": ["XML parse error: empty payload."],
             "namespaces": namespaces,
+            "analysis": analysis,
+        }
+
+    root, parsed_namespaces, parse_error = _parse_xml_once(xml_bytes)
+    if parsed_namespaces:
+        namespaces = parsed_namespaces
+
+    analysis = _detect_tax_procedures(root)
+
+    if parse_error:
+        return {
+            "xsdValid": False,
+            "errors": [parse_error],
+            "namespaces": namespaces,
+            "analysis": analysis,
         }
 
     try:
@@ -63,10 +92,43 @@ def validate_xml(xml_bytes: bytes) -> dict:
             "xsdValid": False,
             "errors": [message],
             "namespaces": namespaces,
+            "analysis": analysis,
         }
 
     return {
         "xsdValid": len(validation_errors) == 0,
         "errors": validation_errors,
         "namespaces": namespaces,
+        "analysis": analysis,
+    }
+
+
+def _detect_tax_procedures(root: ET.Element | None) -> dict:
+    if root is None:
+        return {
+            "taxProceduresFound": [],
+            "phaseDetected": "unknown",
+            "snapshotWarning": False,
+        }
+
+    procedures = set()
+
+    for elem in root.iter():
+        value = elem.attrib.get("taxProcedure")
+        if value:
+            procedures.add(value)
+
+    if not procedures:
+        phase = "unknown"
+    elif procedures == {"declaration"}:
+        phase = "declaration"
+    elif procedures == {"taxation"}:
+        phase = "taxation"
+    else:
+        phase = "mixed"
+
+    return {
+        "taxProceduresFound": sorted(list(procedures)),
+        "phaseDetected": phase,
+        "snapshotWarning": phase == "mixed",
     }

@@ -100,6 +100,14 @@ try {
         $results += Invoke-Validation -BaseName $case -FixturePath $fixturePath
     }
 
+    $optionalCases = @("mixed_sample")
+    foreach ($case in $optionalCases) {
+        $fixturePath = Join-Path $FixturesDir "$case.xml"
+        if (Test-Path $fixturePath) {
+            $results += Invoke-Validation -BaseName $case -FixturePath $fixturePath
+        }
+    }
+
     $goldenCandidates = @(
         @{ BaseName = "golden_valid.declaration"; Fixture = "golden_valid.declaration.xml" },
         @{ BaseName = "golden_valid.taxation"; Fixture = "golden_valid.taxation.xml" },
