@@ -1,8 +1,8 @@
-import io
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
 import xmlschema
+from app.xml_utils import parse_xml_once
 
 
 SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schema" / "eCH-0278-1-0.xsd"
@@ -22,33 +22,6 @@ def _format_validation_error(error: object) -> str:
     return str(error)
 
 
-def _parse_xml_once(xml_bytes: bytes) -> tuple[ET.Element | None, list[dict], str | None]:
-    namespaces: dict[str, str] = {}
-
-    try:
-        stream = io.BytesIO(xml_bytes)
-        parser = ET.iterparse(stream, events=("start", "start-ns"))
-        for event, data in parser:
-            if event == "start-ns":
-                prefix, uri = data
-                key = prefix or ""
-                if key not in namespaces:
-                    namespaces[key] = uri
-
-        root = parser.root
-        ordered_namespaces = [
-            {"prefix": prefix, "uri": uri}
-            for prefix, uri in sorted(namespaces.items(), key=lambda item: (item[0], item[1]))
-        ]
-        return root, ordered_namespaces, None
-    except ET.ParseError as exc:
-        ordered_namespaces = [
-            {"prefix": prefix, "uri": uri}
-            for prefix, uri in sorted(namespaces.items(), key=lambda item: (item[0], item[1]))
-        ]
-        return None, ordered_namespaces, f"XML parse error: {exc}"
-
-
 def validate_xml(xml_bytes: bytes) -> dict:
     namespaces: list[dict] = []
     analysis = {
@@ -65,7 +38,7 @@ def validate_xml(xml_bytes: bytes) -> dict:
             "analysis": analysis,
         }
 
-    root, parsed_namespaces, parse_error = _parse_xml_once(xml_bytes)
+    root, parsed_namespaces, parse_error = parse_xml_once(xml_bytes)
     if parsed_namespaces:
         namespaces = parsed_namespaces
 

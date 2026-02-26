@@ -1,6 +1,6 @@
 # API Contract (v0.1)
 
-This document describes the current backend API contract for XML schema validation.
+This document describes the current backend API contract for XML schema validation and snapshot comparison.
 
 ---
 
@@ -73,6 +73,37 @@ The endpoint reports validation or parse issues in `errors` while returning `xsd
 
 ---
 
-## Future Endpoints (planned)
+## POST /api/compare
 
-- `POST /api/compare` (planned for v0.1, not implemented yet)
+Compare two uploaded XML snapshot documents with a minimal leaf-value diff.
+
+### Request
+
+- Method: `POST`
+- Content-Type: `multipart/form-data`
+- Form fields:
+  - `xml1` (XML file)
+  - `xml2` (XML file)
+
+### Success Response (`200 OK`)
+
+```json
+{
+  "xml1Valid": true,
+  "xml2Valid": true,
+  "diffSummary": {
+    "changedValues": 3,
+    "addedNodes": 1,
+    "removedNodes": 0
+  }
+}
+```
+
+### Notes
+
+- Both files are validated against the normative XSD first.
+- `xml1Valid` and `xml2Valid` report XSD validation outcome per file.
+- The diff is intentionally minimal for v0.1:
+  - compares only leaf node values
+  - counts added/removed leaf nodes by path and occurrence
+  - does not provide a full structural diff
