@@ -1,1 +1,1 @@
-{"xsdValid":false,"errors":["XML parse error: invalid XML syntax: mismatched tag: line 3, column 2"],"namespaces":[]}
+﻿{"xsdValid":false,"errors":["XML parse error: invalid XML syntax: mismatched tag: line 3, column 2"],"namespaces":[{"prefix":"eCH-0278","uri":"http://www.ech.ch/xmlns/eCH-0278/1"}]}
