@@ -2,6 +2,8 @@
 
 This document describes the current backend API contract for XML schema validation and snapshot comparison.
 
+Base URL (production): `https://ech-0278.gap-labs.net`
+
 ---
 
 ## POST /api/validate
@@ -71,6 +73,34 @@ The endpoint reports validation or parse issues in `errors` while returning `xsd
   - XSD structure/content errors
   - Validation processing errors
 
+### Additional Error Responses
+
+#### `413 Payload Too Large`
+
+Returned when uploaded XML exceeds the backend size limit.
+
+```json
+{
+  "detail": "Uploaded file is too large."
+}
+```
+
+#### `429 Too Many Requests`
+
+Returned by backend rate-limiting middleware for burst traffic.
+
+Headers:
+- `Retry-After: 60`
+
+Body:
+
+```json
+{
+  "error": "rate_limit_exceeded",
+  "message": "Too many requests. Please retry shortly."
+}
+```
+
 ---
 
 ## POST /api/compare
@@ -103,10 +133,38 @@ Compare two uploaded XML snapshot documents with a minimal leaf-value diff.
 
 - Both files are validated against the normative XSD first.
 - `xml1Valid` and `xml2Valid` report XSD validation outcome per file.
-- The diff is intentionally minimal for v0.1:
+- The diff is intentionally minimal for v0.1 and is always returned as an object (`diffSummary` is never `null`):
   - compares only leaf node values
   - counts added/removed leaf nodes by path and occurrence
   - does not provide a full structural diff
+
+### Additional Error Responses
+
+#### `413 Payload Too Large`
+
+Returned when either uploaded XML exceeds the backend size limit.
+
+```json
+{
+  "detail": "Uploaded file is too large."
+}
+```
+
+#### `429 Too Many Requests`
+
+Returned by backend rate-limiting middleware for burst traffic.
+
+Headers:
+- `Retry-After: 60`
+
+Body:
+
+```json
+{
+  "error": "rate_limit_exceeded",
+  "message": "Too many requests. Please retry shortly."
+}
+```
 
 ---
 
@@ -174,3 +232,13 @@ Return a deterministic tree representation of the XSD structure for schema explo
 - Enumeration values are exposed via:
   - node field `enumeration` (element/simpleType level)
   - attribute field `enum` (attribute level)
+
+---
+
+## Operational Limits (current implementation)
+
+- Max upload size per file: `5 MiB`
+- Rate limit window: `60 seconds`
+- Rate limit threshold: `20 requests` per client key (IP / first `x-forwarded-for`) for:
+  - `POST /api/validate`
+  - `POST /api/compare`
