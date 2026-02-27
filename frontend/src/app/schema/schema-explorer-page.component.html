@@ -1,4 +1,4 @@
-<main id="main-content" class="container" tabindex="-1" *ngIf="!loading; else loadingBlock">
+<main class="container" *ngIf="!loading; else loadingBlock">
   <div class="error" *ngIf="error">{{ error }}</div>
 
   <div *ngIf="!error" class="meta" [attr.data-test]="'schema-meta'">
@@ -7,7 +7,7 @@
     <div *ngIf="summary">Namespace: {{ summary.targetNamespace }}</div>
   </div>
 
-  <mat-sidenav-container *ngIf="!error" class="schema-layout">
+  <mat-sidenav-container *ngIf="!error" class="schema-layout" [autosize]="true">
     <mat-sidenav mode="side" opened>
       <app-schema-tree
         [root]="rootNode"
@@ -16,7 +16,7 @@
       ></app-schema-tree>
     </mat-sidenav>
 
-    <mat-sidenav-content>
+    <mat-sidenav-content #detailsPane>
       <app-schema-node-details [node]="selectedNode"></app-schema-node-details>
     </mat-sidenav-content>
   </mat-sidenav-container>

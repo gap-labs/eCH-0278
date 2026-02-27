@@ -1,7 +1,10 @@
 import { Routes } from '@angular/router';
-import { SchemaExplorerPageComponent } from './schema/schema-explorer-page.component';
+import { WorkspacePageComponent } from './workspace/workspace-page.component';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'schema' },
-  { path: 'schema', component: SchemaExplorerPageComponent },
+  { path: '', pathMatch: 'full', redirectTo: 'workspace/schema' },
+  { path: 'workspace', pathMatch: 'full', redirectTo: 'workspace/schema' },
+  { path: 'workspace/:tab', component: WorkspacePageComponent },
+  { path: 'schema', pathMatch: 'full', redirectTo: 'workspace/schema' },
+  { path: 'validate', pathMatch: 'full', redirectTo: 'workspace/validate' },
 ];
