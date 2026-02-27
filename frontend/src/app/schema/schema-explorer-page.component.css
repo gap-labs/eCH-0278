@@ -36,7 +36,7 @@
   display: flex;
   align-items: stretch;
   width: 100%;
-  min-height: clamp(520px, 62vh, 760px);
+  height: clamp(480px, calc(100dvh - 230px), 760px);
   border: 1px solid rgba(28, 27, 31, 0.12);
   background: #fff;
 }
@@ -50,6 +50,8 @@
   padding: var(--space-2);
   border-right: 1px solid rgba(28, 27, 31, 0.12);
   position: relative;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .tree-toolbar {
@@ -136,12 +138,20 @@
 }
 
 @media (max-width: 900px) {
+  .schema-layout {
+    height: clamp(420px, calc(100dvh - 210px), 700px);
+  }
+
   .tree-pane {
     width: min(320px, 45vw);
   }
 }
 
 @media (max-width: 700px) {
+  .schema-layout {
+    height: clamp(360px, calc(100dvh - 180px), 640px);
+  }
+
   .tree-pane {
     width: min(280px, 50vw);
   }
