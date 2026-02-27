@@ -1,0 +1,27 @@
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: ech-0278-backend
+  namespace: ech-0278
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  endpoints:
+    - port: 8000
+      path: /api/schema/summary
+      interval: 30s
+---
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: ech-0278-frontend
+  namespace: ech-0278
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  endpoints:
+    - port: 80
+      path: /
+      interval: 30s

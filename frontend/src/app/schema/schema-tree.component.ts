@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeModule, MatTreeNestedDataSource } from '@angular/material/tree';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { SchemaNode } from './schema.models';
 
 @Component({
   selector: 'app-schema-tree',
   standalone: true,
-  imports: [CommonModule, MatTreeModule, MatButtonModule],
+  imports: [CommonModule, MatTreeModule, MatButtonModule, MatTooltipModule],
   templateUrl: './schema-tree.component.html',
   styleUrl: './schema-tree.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

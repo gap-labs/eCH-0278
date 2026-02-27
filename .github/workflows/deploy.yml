@@ -68,6 +68,8 @@ jobs:
 
       - name: Apply application manifests
         run: |
+          kubectl apply -f infra/k8s/resource-quota.yaml
+          kubectl apply -f infra/k8s/limit-range.yaml
           kubectl apply -f infra/k8s/backend.yaml
           kubectl apply -f infra/k8s/frontend.yaml
           kubectl apply -f infra/k8s/backendconfig.yaml
@@ -79,6 +81,8 @@ jobs:
           kubectl apply -f infra/k8s/network-policy-backend-ingress.yaml
           kubectl apply -f infra/k8s/pod-disruption-budget.yaml
           kubectl apply -f infra/k8s/hpa.yaml
+          kubectl apply -f infra/k8s/pod-monitoring.yaml
+          kubectl apply -f infra/k8s/alerts-rules.yaml
 
       - name: Set deployment images
         run: |
