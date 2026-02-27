@@ -3,6 +3,4 @@ kind: BackendConfig
 metadata:
   name: ech-0278-backend-config
   namespace: ech-0278
-spec:
-  securityPolicy:
-    name: ech-0278-armor
+spec: {}

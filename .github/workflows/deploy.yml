@@ -63,25 +63,39 @@ jobs:
           location: ${{ secrets.GKE_LOCATION }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Ensure Cloud Armor policy
+      - name: Ensure Cloud Armor policy (best effort)
+        id: armor
         shell: bash
         run: |
           set -euo pipefail
 
           POLICY="ech-0278-armor"
-          gcloud compute security-policies describe "$POLICY" >/dev/null 2>&1 || \
-            gcloud compute security-policies create "$POLICY" --description="Baseline protection for eCH-0278"
+          ARMOR_AVAILABLE="false"
+          if gcloud compute security-policies describe "$POLICY" >/dev/null 2>&1; then
+            ARMOR_AVAILABLE="true"
+          else
+            if gcloud compute security-policies create "$POLICY" --description="Baseline protection for eCH-0278"; then
+              ARMOR_AVAILABLE="true"
+            else
+              echo "::warning::Cloud Armor policy could not be created (missing IAM permissions). Deploy will continue without Cloud Armor attachment."
+            fi
+          fi
 
-          if ! gcloud compute security-policies rules list --security-policy "$POLICY" --format='value(priority)' | grep -qx '1000'; then
-            gcloud compute security-policies rules create 1000 \
-              --security-policy "$POLICY" \
-              --expression "request.method == 'POST' && (request.path == '/api/validate' || request.path == '/api/compare')" \
-              --action throttle \
-              --rate-limit-threshold-count 20 \
-              --rate-limit-threshold-interval-sec 60 \
-              --conform-action allow \
-              --exceed-action deny-429 \
-              --enforce-on-key IP
+          echo "armor_available=$ARMOR_AVAILABLE" >> "$GITHUB_OUTPUT"
+
+          if [ "$ARMOR_AVAILABLE" = "true" ]; then
+            if ! gcloud compute security-policies rules list --security-policy "$POLICY" --format='value(priority)' | grep -qx '1000'; then
+              gcloud compute security-policies rules create 1000 \
+                --security-policy "$POLICY" \
+                --expression "request.method == 'POST' && (request.path == '/api/validate' || request.path == '/api/compare')" \
+                --action throttle \
+                --rate-limit-threshold-count 20 \
+                --rate-limit-threshold-interval-sec 60 \
+                --conform-action allow \
+                --exceed-action deny-429 \
+                --enforce-on-key IP || \
+                echo "::warning::Cloud Armor rule creation failed."
+            fi
           fi
 
       - name: Apply namespace
@@ -95,6 +109,11 @@ jobs:
           kubectl apply -f infra/k8s/frontendconfig.yaml
           kubectl apply -f infra/k8s/managed-certificate.yaml
           kubectl apply -f infra/k8s/ingress.yaml
+
+      - name: Attach Cloud Armor to BackendConfig
+        if: steps.armor.outputs.armor_available == 'true'
+        run: |
+          kubectl -n "$NAMESPACE" patch backendconfig ech-0278-backend-config --type=merge -p '{"spec":{"securityPolicy":{"name":"ech-0278-armor"}}}'
 
       - name: Set deployment images
         run: |
