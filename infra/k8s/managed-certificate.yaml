@@ -1,0 +1,8 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: ech-0278-managed-cert
+  namespace: ech-0278
+spec:
+  domains:
+    - ech-0278.gap-labs.net

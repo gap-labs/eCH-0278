@@ -70,6 +70,7 @@ jobs:
         run: |
           kubectl apply -f infra/k8s/backend.yaml
           kubectl apply -f infra/k8s/frontend.yaml
+          kubectl apply -f infra/k8s/managed-certificate.yaml
           kubectl apply -f infra/k8s/ingress.yaml
 
       - name: Set deployment images
