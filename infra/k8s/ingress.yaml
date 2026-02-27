@@ -5,6 +5,7 @@ metadata:
   namespace: ech-0278
   annotations:
     kubernetes.io/ingress.class: gce
+    networking.gke.io/v1beta1.FrontendConfig: ech-0278-frontend-config
     networking.gke.io/managed-certificates: ech-0278-managed-cert
 spec:
   rules:
