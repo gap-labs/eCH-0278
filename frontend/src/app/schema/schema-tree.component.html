@@ -17,7 +17,8 @@
         mat-icon-button
         matTreeNodeToggle
         [matTooltip]="treeControl.isExpanded(node) ? 'Collapse node' : 'Expand node'"
-        [attr.aria-label]="treeControl.isExpanded(node) ? 'Collapse node' : 'Expand node'">
+        [attr.aria-label]="treeControl.isExpanded(node) ? 'Collapse node' : 'Expand node'"
+        [attr.title]="treeControl.isExpanded(node) ? 'Collapse node' : 'Expand node'">
         {{ treeControl.isExpanded(node) ? '−' : '+' }}
       </button>
       <button
