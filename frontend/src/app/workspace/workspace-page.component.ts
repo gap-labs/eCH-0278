@@ -35,7 +35,13 @@ export class WorkspacePageComponent implements OnInit, OnDestroy {
   }
 
   onTabChange(index: number): void {
-    const tab = index === 1 ? 'validate' : 'schema';
-    this.router.navigate(['/workspace', tab]);
+    const nextTab = index === 1 ? 'validate' : 'schema';
+    const currentTab = this.route.snapshot.paramMap.get('tab') ?? 'schema';
+
+    if (nextTab === currentTab) {
+      return;
+    }
+
+    this.router.navigate(['/workspace', nextTab]);
   }
 }

@@ -1,5 +1,9 @@
 <main id="main-content" class="workspace-shell" tabindex="-1">
-  <mat-tab-group [selectedIndex]="selectedIndex" (selectedIndexChange)="onTabChange($event)" [preserveContent]="true">
+  <mat-tab-group
+    [selectedIndex]="selectedIndex"
+    (selectedIndexChange)="onTabChange($event)"
+    [preserveContent]="true"
+    animationDuration="0ms">
     <mat-tab label="Schema">
       <app-schema-explorer-page></app-schema-explorer-page>
     </mat-tab>

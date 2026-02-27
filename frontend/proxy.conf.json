@@ -1,0 +1,7 @@
+{
+  "/api": {
+    "target": "http://backend-dev:8000",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
