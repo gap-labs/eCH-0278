@@ -66,8 +66,8 @@ jobs:
 
       - name: Wait for rollout
         run: |
-          kubectl -n "$NAMESPACE" rollout status deployment/backend --timeout=180s
-          kubectl -n "$NAMESPACE" rollout status deployment/frontend --timeout=180s
+          kubectl -n "$NAMESPACE" rollout status deployment/backend --timeout=600s
+          kubectl -n "$NAMESPACE" rollout status deployment/frontend --timeout=600s
 
       - name: Smoke checks
         shell: bash
