@@ -44,6 +44,8 @@ kind: Service
 metadata:
   name: frontend
   namespace: ech-0278
+  annotations:
+    cloud.google.com/backend-config: '{"default":"ech-0278-backend-config"}'
 spec:
   selector:
     app: frontend
