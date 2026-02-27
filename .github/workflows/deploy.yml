@@ -63,8 +63,14 @@ jobs:
           location: ${{ secrets.GKE_LOCATION }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Apply manifests
-        run: kubectl apply -f infra/k8s
+      - name: Apply namespace
+        run: kubectl apply -f infra/k8s/namespace.yaml
+
+      - name: Apply application manifests
+        run: |
+          kubectl apply -f infra/k8s/backend.yaml
+          kubectl apply -f infra/k8s/frontend.yaml
+          kubectl apply -f infra/k8s/ingress.yaml
 
       - name: Set deployment images
         run: |
