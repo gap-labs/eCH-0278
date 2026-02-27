@@ -1,0 +1,86 @@
+<main class="container">
+  <div class="meta" [attr.data-test]="'compare-meta'">
+    <p class="eyebrow">Swiss Technical Advisory</p>
+    <h1 class="page-title">XML Comparison</h1>
+  </div>
+
+  <mat-card>
+    <mat-card-content class="upload-content">
+      <section class="upload-column">
+        <h3>XML Document A</h3>
+        <input #fileInputA class="file-picker-input" type="file" accept=".xml" (change)="onFileASelected($event)" />
+        <button type="button" mat-stroked-button (click)="fileInputA.click()">Choose XML document A</button>
+        <div class="selected-file" *ngIf="fileA">Selected file: {{ fileA.name }}</div>
+      </section>
+
+      <section class="upload-column">
+        <h3>XML Document B</h3>
+        <input #fileInputB class="file-picker-input" type="file" accept=".xml" (change)="onFileBSelected($event)" />
+        <button type="button" mat-stroked-button (click)="fileInputB.click()">Choose XML document B</button>
+        <div class="selected-file" *ngIf="fileB">Selected file: {{ fileB.name }}</div>
+      </section>
+
+      <button mat-flat-button color="primary" (click)="compare()" [disabled]="!fileA || !fileB || loading">
+        Compare
+      </button>
+
+      <div class="loading" *ngIf="loading">
+        <mat-spinner diameter="28"></mat-spinner>
+      </div>
+
+      <p class="hint">No files are persisted. Structural comparison only.</p>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="error-card" *ngIf="error">
+    <mat-card-content>{{ error }}</mat-card-content>
+  </mat-card>
+
+  <mat-card *ngIf="result">
+    <mat-card-header>
+      <mat-card-title>Comparison Result</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="result-content">
+      <section>
+        <h3>Validation Status</h3>
+        <div class="status-grid">
+          <div class="status-item">
+            <span>Document A</span>
+            <strong>{{ result.xml1Valid ? 'Valid' : 'Invalid' }}</strong>
+          </div>
+          <div class="status-item">
+            <span>Document B</span>
+            <strong>{{ result.xml2Valid ? 'Valid' : 'Invalid' }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3>Structural Difference Summary</h3>
+        <div *ngIf="!result.diffSummary" class="skip-message">
+          Structural comparison skipped due to validation failure.
+        </div>
+        <div class="summary-grid" *ngIf="result.diffSummary as summary">
+          <mat-card class="metric-card">
+            <mat-card-content>
+              <div class="metric-label">Changed Values</div>
+              <div class="metric-value">{{ summary.changedValues }}</div>
+            </mat-card-content>
+          </mat-card>
+          <mat-card class="metric-card">
+            <mat-card-content>
+              <div class="metric-label">Added Nodes</div>
+              <div class="metric-value">{{ summary.addedNodes }}</div>
+            </mat-card-content>
+          </mat-card>
+          <mat-card class="metric-card">
+            <mat-card-content>
+              <div class="metric-label">Removed Nodes</div>
+              <div class="metric-value">{{ summary.removedNodes }}</div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</main>

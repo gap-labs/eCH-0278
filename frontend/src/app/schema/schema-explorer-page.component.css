@@ -32,21 +32,94 @@
 }
 
 .schema-layout {
+  position: relative;
+  display: flex;
+  align-items: stretch;
   width: 100%;
   min-height: clamp(520px, 62vh, 760px);
   border: 1px solid rgba(28, 27, 31, 0.12);
   background: #fff;
 }
 
-mat-sidenav {
+.tree-pane {
+  flex: 0 0 auto;
   width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
   padding: var(--space-2);
   border-right: 1px solid rgba(28, 27, 31, 0.12);
+  position: relative;
 }
 
-mat-sidenav-content {
+.tree-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.collapse-all-icon {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collapse-all-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.collapse-all-icon:hover,
+.collapse-all-icon:focus-visible {
+  background: rgba(28, 27, 31, 0.08);
+}
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: col-resize;
+  z-index: 3;
+}
+
+.resize-handle::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(28, 27, 31, 0.16);
+}
+
+.resize-handle:hover::before,
+.resize-handle:focus-visible::before {
+  background: rgba(28, 27, 31, 0.36);
+}
+
+.details-pane {
+  flex: 1 1 auto;
   padding: var(--space-4);
   min-width: 0;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 
@@ -63,17 +136,17 @@ mat-sidenav-content {
 }
 
 @media (max-width: 900px) {
-  mat-sidenav {
+  .tree-pane {
     width: min(320px, 45vw);
   }
 }
 
 @media (max-width: 700px) {
-  mat-sidenav {
+  .tree-pane {
     width: min(280px, 50vw);
   }
 
-  mat-sidenav-content {
+  .details-pane {
     padding: var(--space-3);
   }
 }

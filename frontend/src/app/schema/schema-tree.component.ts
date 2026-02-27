@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeModule, MatTreeNestedDataSource } from '@angular/material/tree';
@@ -12,6 +12,7 @@ import { SchemaNode } from './schema.models';
   imports: [CommonModule, MatTreeModule, MatButtonModule],
   templateUrl: './schema-tree.component.html',
   styleUrl: './schema-tree.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SchemaTreeComponent {
   treeControl = new NestedTreeControl<SchemaNode>((node) => node.children);
@@ -21,7 +22,10 @@ export class SchemaTreeComponent {
   @Input() selectedNode: SchemaNode | null = null;
   @Output() nodeSelected = new EventEmitter<SchemaNode>();
 
-  constructor(private readonly elementRef: ElementRef<HTMLElement>) {}
+  constructor(
+    private readonly elementRef: ElementRef<HTMLElement>,
+    private readonly changeDetectorRef: ChangeDetectorRef,
+  ) {}
 
   @Input() set root(value: SchemaNode | null) {
     this.dataSource.data = value ? [value] : [];
@@ -43,6 +47,20 @@ export class SchemaTreeComponent {
 
   expandPath(path: SchemaNode[]): void {
     path.forEach((node) => this.treeControl.expand(node));
+  }
+
+  collapseAll(): void {
+    const rootNode = this.dataSource.data[0];
+    if (rootNode) {
+      this.collapseRecursively(rootNode);
+    }
+
+    this.treeControl.collapseAll();
+    if (rootNode) {
+      this.treeControl.expand(rootNode);
+    }
+
+    this.changeDetectorRef.detectChanges();
   }
 
   domId(node: SchemaNode): string {
@@ -69,5 +87,10 @@ export class SchemaTreeComponent {
     node.children.forEach((childNode, childIndex) => {
       this.indexNodeDomIds(childNode, `${indexPath}-${childIndex}`);
     });
+  }
+
+  private collapseRecursively(node: SchemaNode): void {
+    this.treeControl.collapse(node);
+    node.children.forEach((childNode) => this.collapseRecursively(childNode));
   }
 }

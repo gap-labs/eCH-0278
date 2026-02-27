@@ -1,8 +1,18 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subscription } from 'rxjs';
 
 import { SchemaNode, SchemaSummary } from './schema.models';
@@ -17,23 +27,34 @@ import { SchemaNodeDetailsComponent } from './schema-node-details.component';
   standalone: true,
   imports: [
     CommonModule,
-    MatSidenavModule,
+    MatButtonModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     SchemaTreeComponent,
     SchemaNodeDetailsComponent,
   ],
   templateUrl: './schema-explorer-page.component.html',
   styleUrl: './schema-explorer-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SchemaExplorerPageComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(SchemaTreeComponent) private schemaTree?: SchemaTreeComponent;
   @ViewChild('detailsPane', { read: ElementRef }) private detailsPane?: ElementRef<HTMLElement>;
+  @ViewChild('layoutContainer', { read: ElementRef }) private layoutContainer?: ElementRef<HTMLElement>;
 
   loading = true;
   error: string | null = null;
   summary: SchemaSummary | null = null;
   rootNode: SchemaNode | null = null;
   selectedNode: SchemaNode | null = null;
+  treePaneWidth = 360;
+
+  private readonly minTreePaneWidth = 240;
+  private readonly maxTreePaneWidth = 620;
+  private readonly treePaneWidthStorageKey = 'schemaTreePaneWidth';
+  private resizing = false;
+  private resizeStartX = 0;
+  private resizeStartWidth = 360;
   private pendingJumpPath: string | null = null;
   private jumpSubscription?: Subscription;
 
@@ -45,6 +66,8 @@ export class SchemaExplorerPageComponent implements OnInit, AfterViewInit, OnDes
   ) {}
 
   ngOnInit(): void {
+    this.treePaneWidth = this.getStoredTreePaneWidth();
+
     this.pendingJumpPath = this.schemaJumpService.consumePendingPath();
     this.jumpSubscription = this.schemaJumpService.jumpRequested$.subscribe((path) => {
       this.pendingJumpPath = path;
@@ -54,10 +77,12 @@ export class SchemaExplorerPageComponent implements OnInit, AfterViewInit, OnDes
     this.schemaExplorerService.getSummary().subscribe({
       next: (summary) => {
         this.summary = summary;
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.error = 'Failed to load schema summary.';
         this.loading = false;
+        this.changeDetectorRef.markForCheck();
       },
     });
 
@@ -67,10 +92,12 @@ export class SchemaExplorerPageComponent implements OnInit, AfterViewInit, OnDes
         this.selectedNode = response.root;
         this.loading = false;
         this.applyPendingJump();
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.error = 'Failed to load schema tree.';
         this.loading = false;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
@@ -83,11 +110,78 @@ export class SchemaExplorerPageComponent implements OnInit, AfterViewInit, OnDes
   }
 
   ngAfterViewInit(): void {
+    this.treePaneWidth = this.clampTreeWidth(this.treePaneWidth);
     this.applyPendingJump();
+    this.changeDetectorRef.markForCheck();
   }
 
   ngOnDestroy(): void {
     this.jumpSubscription?.unsubscribe();
+    this.stopResizing();
+  }
+
+  startResize(event: MouseEvent): void {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.preventDefault();
+    this.resizing = true;
+    this.resizeStartX = event.clientX;
+    this.resizeStartWidth = this.treePaneWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
+
+  onResizeHandleKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+      return;
+    }
+
+    event.preventDefault();
+    const delta = event.key === 'ArrowRight' ? 16 : -16;
+    const nextWidth = this.treePaneWidth + delta;
+    this.treePaneWidth = this.clampTreeWidth(nextWidth);
+    this.persistTreePaneWidth();
+    this.refreshLayout();
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onMouseMove(event: MouseEvent): void {
+    if (!this.resizing) {
+      return;
+    }
+
+    const deltaX = event.clientX - this.resizeStartX;
+    const requestedWidth = this.resizeStartWidth + deltaX;
+    this.treePaneWidth = this.clampTreeWidth(requestedWidth);
+  }
+
+  @HostListener('document:mouseup')
+  onMouseUp(): void {
+    if (!this.resizing) {
+      return;
+    }
+
+    this.stopResizing();
+    this.persistTreePaneWidth();
+    this.refreshLayout();
+  }
+
+  collapseAll(): void {
+    this.schemaTree?.collapseAll();
+    this.refreshLayout();
+    this.changeDetectorRef.markForCheck();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    const clampedWidth = this.clampTreeWidth(this.treePaneWidth);
+    if (clampedWidth !== this.treePaneWidth) {
+      this.treePaneWidth = clampedWidth;
+      this.persistTreePaneWidth();
+      this.changeDetectorRef.markForCheck();
+    }
   }
 
   private applyPendingJump(): void {
@@ -136,5 +230,46 @@ export class SchemaExplorerPageComponent implements OnInit, AfterViewInit, OnDes
     requestAnimationFrame(() => {
       window.dispatchEvent(new Event('resize'));
     });
+  }
+
+  private clampTreeWidth(requestedWidth: number): number {
+    const containerWidth = this.layoutContainer?.nativeElement.clientWidth ?? 1100;
+    const detailsMinWidth = 320;
+    const dynamicMaxWidth = Math.max(this.minTreePaneWidth, containerWidth - detailsMinWidth);
+    const effectiveMax = Math.min(this.maxTreePaneWidth, dynamicMaxWidth);
+
+    return Math.round(Math.max(this.minTreePaneWidth, Math.min(effectiveMax, requestedWidth)));
+  }
+
+  private stopResizing(): void {
+    this.resizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+
+  private getStoredTreePaneWidth(): number {
+    if (typeof window === 'undefined') {
+      return 360;
+    }
+
+    const storedWidth = window.localStorage.getItem(this.treePaneWidthStorageKey);
+    if (!storedWidth) {
+      return 360;
+    }
+
+    const parsedWidth = Number(storedWidth);
+    if (!Number.isFinite(parsedWidth)) {
+      return 360;
+    }
+
+    return Math.round(parsedWidth);
+  }
+
+  private persistTreePaneWidth(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.localStorage.setItem(this.treePaneWidthStorageKey, String(this.treePaneWidth));
   }
 }
