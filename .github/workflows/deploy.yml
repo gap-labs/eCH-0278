@@ -40,6 +40,22 @@ jobs:
           echo "backend_image=${{ secrets.GKE_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gap-repository/ech-0278-backend:${{ github.sha }}" >> "$GITHUB_OUTPUT"
           echo "frontend_image=${{ secrets.GKE_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gap-repository/ech-0278-frontend:${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.vars.outputs.backend_image }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ steps.vars.outputs.frontend_image }}
+
       - name: Get GKE credentials
         uses: google-github-actions/get-gke-credentials@v2
         with:
