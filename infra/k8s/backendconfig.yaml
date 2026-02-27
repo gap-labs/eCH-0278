@@ -3,4 +3,17 @@ kind: BackendConfig
 metadata:
   name: ech-0278-backend-config
   namespace: ech-0278
-spec: {}
+spec:
+  timeoutSec: 30
+  connectionDraining:
+    drainingTimeoutSec: 30
+  healthCheck:
+    type: HTTP
+    requestPath: /
+    port: 80
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 1
+    unhealthyThreshold: 3
+  securityPolicy:
+    name: ech-0278-armor

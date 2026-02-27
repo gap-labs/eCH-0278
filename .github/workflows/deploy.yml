@@ -74,6 +74,11 @@ jobs:
           kubectl apply -f infra/k8s/frontendconfig.yaml
           kubectl apply -f infra/k8s/managed-certificate.yaml
           kubectl apply -f infra/k8s/ingress.yaml
+          kubectl apply -f infra/k8s/network-policy-default-deny.yaml
+          kubectl apply -f infra/k8s/network-policy-frontend-ingress.yaml
+          kubectl apply -f infra/k8s/network-policy-backend-ingress.yaml
+          kubectl apply -f infra/k8s/pod-disruption-budget.yaml
+          kubectl apply -f infra/k8s/hpa.yaml
 
       - name: Set deployment images
         run: |
