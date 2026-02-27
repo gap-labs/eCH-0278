@@ -1,7 +1,7 @@
 .container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: var(--space-10) var(--space-4) var(--space-12);
+  padding: var(--space-10) 0 var(--space-12);
 }
 
 .meta {
@@ -47,6 +47,7 @@ mat-sidenav {
 mat-sidenav-content {
   padding: var(--space-4);
   min-width: 0;
+  overflow-x: hidden;
 }
 
 .loading {

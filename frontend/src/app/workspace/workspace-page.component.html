@@ -1,0 +1,10 @@
+<main id="main-content" class="workspace-shell" tabindex="-1">
+  <mat-tab-group [selectedIndex]="selectedIndex" (selectedIndexChange)="onTabChange($event)" [preserveContent]="true">
+    <mat-tab label="Schema">
+      <app-schema-explorer-page></app-schema-explorer-page>
+    </mat-tab>
+    <mat-tab label="Validation">
+      <app-validate-page></app-validate-page>
+    </mat-tab>
+  </mat-tab-group>
+</main>

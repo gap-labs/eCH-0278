@@ -1,7 +1,12 @@
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="schema-tree">
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
     <button mat-icon-button disabled></button>
-    <button mat-button class="node-button" [class.selected]="isSelected(node)" (click)="onSelect(node)">
+    <button
+      mat-button
+      class="node-button"
+      [attr.id]="domId(node)"
+      [class.selected]="isSelected(node)"
+      (click)="onSelect(node)">
       {{ node.name }}
     </button>
   </mat-tree-node>
@@ -11,7 +16,12 @@
       <button mat-icon-button matTreeNodeToggle>
         {{ treeControl.isExpanded(node) ? '−' : '+' }}
       </button>
-      <button mat-button class="node-button" [class.selected]="isSelected(node)" (click)="onSelect(node)">
+      <button
+        mat-button
+        class="node-button"
+        [attr.id]="domId(node)"
+        [class.selected]="isSelected(node)"
+        (click)="onSelect(node)">
         {{ node.name }}
       </button>
     </div>

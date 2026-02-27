@@ -1,0 +1,113 @@
+<main class="container">
+  <div class="meta" [attr.data-test]="'validate-meta'">
+    <p class="eyebrow">Swiss Technical Advisory</p>
+    <h1 class="page-title">XML Validation</h1>
+  </div>
+
+  <mat-card>
+    <mat-card-content class="upload-content">
+      <input #fileInput class="file-picker-input" type="file" accept=".xml" (change)="onFileSelected($event)" />
+      <button type="button" mat-stroked-button (click)="fileInput.click()">Choose XML file</button>
+      <div class="selected-file" *ngIf="selectedFile">Selected file: {{ selectedFile.name }}</div>
+      <button mat-flat-button color="primary" (click)="validate()" [disabled]="!selectedFile || loading">
+        Run validation
+      </button>
+      <div class="loading" *ngIf="loading">
+        <mat-spinner diameter="28"></mat-spinner>
+      </div>
+      <p class="hint">Uploaded files are not persisted.</p>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="error-card" *ngIf="error">
+    <mat-card-content>{{ error }}</mat-card-content>
+  </mat-card>
+
+  <mat-card *ngIf="result">
+    <mat-card-header>
+      <mat-card-title>Validation Result</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="result-content">
+      <section>
+        <h3>Normative Validation</h3>
+        <mat-chip-listbox>
+          <mat-chip-option [color]="result.xsdValid ? 'primary' : 'warn'" [selected]="true" [disabled]="true">
+            {{ result.xsdValid ? 'XSD Valid' : 'XSD Invalid' }}
+          </mat-chip-option>
+        </mat-chip-listbox>
+
+        <div *ngIf="result.errors.length === 0">No validation errors</div>
+        <mat-list class="validation-errors" *ngIf="result.errors.length > 0">
+          <mat-list-item class="validation-error-item" *ngFor="let item of validationErrors">
+            <ng-container *ngIf="item.path && item.canJump; else plainErrorText">
+              <button
+                type="button"
+                class="error-path-link"
+                (click)="onErrorPathClick(item.path)"
+                [disabled]="isErrorPathBusy(item.path)">
+                {{ item.path }}
+              </button>
+              <span>: {{ item.message }}</span>
+            </ng-container>
+            <ng-template #plainErrorText>{{ item.raw }}</ng-template>
+          </mat-list-item>
+        </mat-list>
+      </section>
+
+      <section>
+        <h3>Namespaces</h3>
+        <table class="namespaces-table" *ngIf="result.namespaces.length > 0; else noNamespaces">
+          <thead>
+            <tr>
+              <th>Prefix</th>
+              <th>URI</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let namespace of result.namespaces">
+              <td>{{ namespace.prefix || '(default)' }}</td>
+              <td>{{ namespace.uri }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #noNamespaces>
+          <div>No namespaces detected.</div>
+        </ng-template>
+      </section>
+
+      <section>
+        <h3>Structural Analysis</h3>
+        <ng-container *ngIf="result.analysis as analysis; else noAnalysis">
+          <div class="analysis-row">
+            <span>Phase Detected:</span>
+            <mat-chip-listbox>
+              <mat-chip-option [selected]="true" [disabled]="true">{{ analysis.phaseDetected }}</mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+
+          <div class="analysis-row">
+            <span>Snapshot Warning:</span>
+            <mat-chip-listbox>
+              <mat-chip-option [color]="analysis.snapshotWarning ? 'warn' : 'primary'" [selected]="true" [disabled]="true">
+                {{ analysis.snapshotWarning }}
+              </mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+
+          <div class="analysis-row">
+            <span>Procedures:</span>
+            <mat-chip-listbox *ngIf="analysis.taxProceduresFound.length > 0">
+              <mat-chip-option *ngFor="let procedure of analysis.taxProceduresFound" [selected]="true" [disabled]="true">
+                {{ procedure }}
+              </mat-chip-option>
+            </mat-chip-listbox>
+            <span *ngIf="analysis.taxProceduresFound.length === 0">none</span>
+          </div>
+        </ng-container>
+        <ng-template #noAnalysis>
+          <div>No structural analysis available.</div>
+        </ng-template>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</main>
