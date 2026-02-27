@@ -7,4 +7,5 @@ export const routes: Routes = [
   { path: 'workspace/:tab', component: WorkspacePageComponent },
   { path: 'schema', pathMatch: 'full', redirectTo: 'workspace/schema' },
   { path: 'validate', pathMatch: 'full', redirectTo: 'workspace/validate' },
+  { path: 'compare', pathMatch: 'full', redirectTo: 'workspace/compare' },
 ];

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -33,6 +33,7 @@ interface ValidationErrorView {
   ],
   templateUrl: './validate-page.component.html',
   styleUrl: './validate-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ValidatePageComponent {
   selectedFile?: File;
@@ -48,6 +49,7 @@ export class ValidatePageComponent {
     private readonly schemaPathResolverService: SchemaPathResolverService,
     private readonly schemaJumpService: SchemaJumpService,
     private readonly router: Router,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   onFileSelected(event: Event): void {
@@ -68,10 +70,12 @@ export class ValidatePageComponent {
         this.result = response;
         this.buildValidationErrors(response.errors);
         this.loading = false;
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.error = 'Validation request failed. Please check connectivity and backend availability.';
         this.loading = false;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
@@ -122,6 +126,7 @@ export class ValidatePageComponent {
           };
 
           this.validationErrors = updatedErrors;
+          this.changeDetectorRef.markForCheck();
         });
     });
   }

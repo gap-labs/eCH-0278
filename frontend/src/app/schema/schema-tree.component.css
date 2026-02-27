@@ -1,8 +1,8 @@
 .schema-tree {
   width: 100%;
   min-width: 0;
-  line-height: 1.22;
-  --mat-tree-node-min-height: 34px;
+  line-height: 1.14;
+  --mat-tree-node-min-height: 30px;
 }
 
 .node-row {
@@ -17,10 +17,10 @@
   width: 100%;
   white-space: normal;
   word-break: break-word;
-  line-height: 1.22;
+  line-height: 1.14;
   padding-top: 0;
   padding-bottom: 0;
-  min-height: 30px;
+  min-height: 26px;
 }
 
 .node-button.selected {
