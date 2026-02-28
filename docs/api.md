@@ -110,6 +110,7 @@ The endpoint reports parser/XSD issues in `structuralErrors` while returning `xs
   - XML parse errors
   - XSD structure/content errors
   - Validation processing errors
+- `errors` is currently returned as a compatibility alias of `structuralErrors` for legacy clients.
 - `proceduralFindings` contains procedural consistency findings when `procedural=true`.
 - Procedural `error` findings are analysis outcomes and do not imply HTTP transport failure.
 
