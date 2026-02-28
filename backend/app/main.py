@@ -1,19 +1,29 @@
 import time
+import logging
 from collections import defaultdict, deque
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from starlette.responses import JSONResponse
 from app.comparison import compare_xml
 from app.schema_explorer import get_schema_summary, get_schema_tree
-from app.validation import validate_xml
+from app.validation import validate_xml, initialize_procedural_validators
 
 app = FastAPI()
+logger = logging.getLogger(__name__)
 
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 RATE_LIMIT_WINDOW_SECONDS = 60
 RATE_LIMIT_MAX_REQUESTS = 20
 RATE_LIMITED_PATHS = {"/api/validate", "/api/compare"}
 request_buckets: dict[str, deque[float]] = defaultdict(deque)
+
+
+@app.on_event("startup")
+async def warm_procedural_validator_cache() -> None:
+    try:
+        initialize_procedural_validators()
+    except Exception as exc:
+        logger.exception("Failed to initialize procedural validators: %s", exc)
 
 
 def get_client_key(request: Request) -> str:
@@ -50,11 +60,11 @@ async def apply_rate_limit(request: Request, call_next):
     return await call_next(request)
 
 @app.post("/api/validate")
-async def validate(file: UploadFile = File(...)):
+async def validate(file: UploadFile = File(...), procedural: bool = False):
     content = await file.read()
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Uploaded file is too large.")
-    result = validate_xml(content)
+    result = validate_xml(content, procedural=procedural)
     return result
 
 
