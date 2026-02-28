@@ -1,4 +1,4 @@
-# API Contract (v0.1)
+# API Contract (v0.2 Draft)
 
 This document describes the current backend API contract for XML schema validation and snapshot comparison.
 
@@ -8,20 +8,22 @@ Base URL (production): `https://ech-0278.gap-labs.net`
 
 ## POST /api/validate
 
-Validate an uploaded XML file against the normative eCH-0278 XSD.
+Validate an uploaded XML file against the normative eCH-0278 XSD and optionally run procedural consistency checks.
 
 ### Request
 
 - Method: `POST`
 - Content-Type: `multipart/form-data`
 - Form field: `file` (XML file)
+- Query parameter: `procedural=true|false` (optional, default: `false`)
 
-### Success Response (`200 OK`)
+### Success Response (`200 OK`, `procedural=false`)
 
 ```json
 {
   "xsdValid": true,
-  "errors": [],
+  "structuralErrors": [],
+  "proceduralFindings": [],
   "namespaces": [
     {
       "prefix": "eCH-0278",
@@ -36,16 +38,50 @@ Validate an uploaded XML file against the normative eCH-0278 XSD.
 }
 ```
 
-### Validation Error Response (`200 OK`)
+### Success Response (`200 OK`, `procedural=true`)
 
-The endpoint reports validation or parse issues in `errors` while returning `xsdValid: false`.
+```json
+{
+  "xsdValid": true,
+  "structuralErrors": [],
+  "proceduralFindings": [
+    {
+      "code": "taxation_values_in_declaration_phase",
+      "ruleVersion": "1.0.0",
+      "severity": "error",
+      "layer": "procedural",
+      "axis": "time",
+      "message": "Taxation values are present while the document is marked as declaration phase.",
+      "paths": [
+        "/naturalPersonTaxData/taxData/taxation/.../totalAmountRevenue"
+      ]
+    }
+  ],
+  "namespaces": [
+    {
+      "prefix": "eCH-0278",
+      "uri": "http://www.ech.ch/xmlns/eCH-0278/1"
+    }
+  ],
+  "analysis": {
+    "taxProceduresFound": ["declaration"],
+    "phaseDetected": "declaration",
+    "snapshotWarning": false
+  }
+}
+```
+
+### Structural Validation Error Response (`200 OK`)
+
+The endpoint reports parser/XSD issues in `structuralErrors` while returning `xsdValid: false`.
 
 ```json
 {
   "xsdValid": false,
-  "errors": [
+  "structuralErrors": [
     "XML parse error: ..."
   ],
+  "proceduralFindings": [],
   "namespaces": [
     {
       "prefix": "eCH-0278",
@@ -64,14 +100,18 @@ The endpoint reports validation or parse issues in `errors` while returning `xsd
 
 - The XSD is loaded at backend startup (fail fast on schema load errors).
 - XML input is not persisted to disk.
+- `procedural=false` returns `proceduralFindings: []` deterministically.
+- If `xsdValid` is `false`, procedural validation is skipped and `proceduralFindings` is `[]`.
 - `namespaces` contains detected XML namespace declarations (`prefix`, `uri`).
 - `analysis` is non-normative lifecycle interpretation based on `taxProcedure` attributes:
   - `phaseDetected`: `declaration | taxation | mixed | unknown`
   - `snapshotWarning`: `true` only for `mixed`
-- `errors` may include:
+- `structuralErrors` may include:
   - XML parse errors
   - XSD structure/content errors
   - Validation processing errors
+- `proceduralFindings` contains procedural consistency findings when `procedural=true`.
+- Procedural `error` findings are analysis outcomes and do not imply HTTP transport failure.
 
 ### Additional Error Responses
 
@@ -137,6 +177,7 @@ Compare two uploaded XML snapshot documents with a minimal leaf-value diff.
   - compares only leaf node values
   - counts added/removed leaf nodes by path and occurrence
   - does not provide a full structural diff
+- If either XML is not XSD-valid, `diffSummary` contains zero counts and reflects validation state only.
 
 ### Additional Error Responses
 
