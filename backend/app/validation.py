@@ -87,8 +87,9 @@ def _build_response(
     namespaces: list[dict],
     analysis: dict,
     procedural_findings: list[dict],
+    procedural_available: bool | None = None,
 ) -> dict:
-    return {
+    response = {
         "xsdValid": xsd_valid,
         "structuralErrors": structural_errors,
         "proceduralFindings": procedural_findings,
@@ -96,6 +97,19 @@ def _build_response(
         "namespaces": namespaces,
         "analysis": analysis,
     }
+    if procedural_available is not None:
+        response["proceduralAvailable"] = procedural_available
+    return response
+
+
+def _procedural_availability_status() -> tuple[bool, str | None]:
+    initialize_procedural_validators()
+
+    if _procedural_init_error:
+        return False, _procedural_init_error
+    if not _procedural_executables:
+        return False, "No compiled procedural validator stylesheets found."
+    return True, None
 
 
 def _axis_from_code(code: str) -> str:
@@ -224,9 +238,8 @@ def initialize_procedural_validators() -> None:
 
 
 def _run_procedural_validation(xml_bytes: bytes) -> list[dict]:
-    initialize_procedural_validators()
-
-    if _procedural_init_error:
+    procedural_available, unavailable_message = _procedural_availability_status()
+    if not procedural_available:
         return [
             {
                 "code": "procedural_validator_unavailable",
@@ -234,13 +247,10 @@ def _run_procedural_validation(xml_bytes: bytes) -> list[dict]:
                 "severity": "error",
                 "layer": "procedural",
                 "axis": "none",
-                "message": _procedural_init_error,
+                "message": unavailable_message,
                 "paths": [],
             }
         ]
-
-    if not _procedural_executables:
-        return []
 
     findings: list[dict] = []
     with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as temp_file:
@@ -291,6 +301,10 @@ def validate_xml(xml_bytes: bytes, procedural: bool = False) -> dict:
         "phaseDetected": "unknown",
         "snapshotWarning": False,
     }
+    procedural_available: bool | None = None
+
+    if procedural:
+        procedural_available, _ = _procedural_availability_status()
 
     if not xml_bytes:
         return _build_response(
@@ -299,6 +313,7 @@ def validate_xml(xml_bytes: bytes, procedural: bool = False) -> dict:
             namespaces=namespaces,
             analysis=analysis,
             procedural_findings=[],
+            procedural_available=procedural_available,
         )
 
     root, parsed_namespaces, parse_error = parse_xml_once(xml_bytes)
@@ -314,6 +329,7 @@ def validate_xml(xml_bytes: bytes, procedural: bool = False) -> dict:
             namespaces=namespaces,
             analysis=analysis,
             procedural_findings=[],
+            procedural_available=procedural_available,
         )
 
     try:
@@ -332,6 +348,7 @@ def validate_xml(xml_bytes: bytes, procedural: bool = False) -> dict:
             namespaces=namespaces,
             analysis=analysis,
             procedural_findings=[],
+            procedural_available=procedural_available,
         )
 
     xsd_valid = len(validation_errors) == 0
@@ -345,7 +362,30 @@ def validate_xml(xml_bytes: bytes, procedural: bool = False) -> dict:
         namespaces=namespaces,
         analysis=analysis,
         procedural_findings=procedural_findings,
+        procedural_available=procedural_available,
     )
+
+
+def close_procedural_validators() -> None:
+    global _procedural_initialized
+    global _procedural_init_error
+    global _procedural_processor
+    global _procedural_executables
+
+    with _procedural_lock:
+        processor = _procedural_processor
+        _procedural_processor = None
+        _procedural_executables = []
+        _procedural_init_error = None
+        _procedural_initialized = False
+
+        if processor is not None:
+            release_method = getattr(processor, "release", None)
+            if callable(release_method):
+                try:
+                    release_method()
+                except Exception:
+                    pass
 
 
 def _detect_tax_procedures(root: ET.Element | None) -> dict:

@@ -6,7 +6,11 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from starlette.responses import JSONResponse
 from app.comparison import compare_xml
 from app.schema_explorer import get_schema_summary, get_schema_tree
-from app.validation import validate_xml, initialize_procedural_validators
+from app.validation import (
+    validate_xml,
+    initialize_procedural_validators,
+    close_procedural_validators,
+)
 
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -24,6 +28,14 @@ async def warm_procedural_validator_cache() -> None:
         initialize_procedural_validators()
     except Exception as exc:
         logger.exception("Failed to initialize procedural validators: %s", exc)
+
+
+@app.on_event("shutdown")
+async def close_procedural_validator_resources() -> None:
+    try:
+        close_procedural_validators()
+    except Exception as exc:
+        logger.exception("Failed to close procedural validators cleanly: %s", exc)
 
 
 def get_client_key(request: Request) -> str:

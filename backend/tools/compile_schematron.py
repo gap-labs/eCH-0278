@@ -20,7 +20,7 @@ def compile_schematron(
     if not compiler_xsl.exists():
         raise FileNotFoundError(
             f"SchXslt compiler stylesheet not found: {compiler_xsl}. "
-            "Expected compile-for-svrl.xsl at this path."
+            "Expected transpile.xsl at this path."
         )
 
     schematron_files = sorted(source_dir.rglob("*.sch"))
@@ -65,7 +65,7 @@ def main() -> None:
         "--compiler-xsl",
         required=True,
         type=Path,
-        help="Path to SchXslt compile-for-svrl.xsl stylesheet",
+        help="Path to SchXslt transpile.xsl stylesheet",
     )
     parser.add_argument(
         "--include-glob",

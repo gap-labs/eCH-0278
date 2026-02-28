@@ -43,6 +43,7 @@ Validate an uploaded XML file against the normative eCH-0278 XSD and optionally 
 ```json
 {
   "xsdValid": true,
+  "proceduralAvailable": true,
   "structuralErrors": [],
   "proceduralFindings": [
     {
@@ -98,9 +99,11 @@ The endpoint reports parser/XSD issues in `structuralErrors` while returning `xs
 
 ### Notes
 
-- The XSD is loaded at backend startup (fail fast on schema load errors).
+- The XSD is loaded lazily on first validation request and uses vendored local
+  schema locations when available.
 - XML input is not persisted to disk.
 - `procedural=false` returns `proceduralFindings: []` deterministically.
+- When `procedural=true`, response contains `proceduralAvailable: true|false`.
 - If `xsdValid` is `false`, procedural validation is skipped and `proceduralFindings` is `[]`.
 - `namespaces` contains detected XML namespace declarations (`prefix`, `uri`).
 - `analysis` is non-normative lifecycle interpretation based on `taxProcedure` attributes:
