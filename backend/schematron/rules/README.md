@@ -1,10 +1,10 @@
-# Schematron Rules (Test Artifacts)
+# Schematron Rules (Production)
 
-`procedural_smoke.sch` is a test-only smoke rule used to validate the procedural pipeline end-to-end:
+This folder contains production Schematron rules only.
 
-- Schematron source detection in Docker build stage
-- SchXslt transpilation to runtime XSLT
-- Saxon/C execution in `POST /api/validate?procedural=true`
-- Mapping of SVRL output into `proceduralFindings`
+Test-only smoke rules are kept in `backend/tests/rules` so they are not part of
+the production rules tree by default.
 
-This file is not a domain/business rule set for v0.2 production behavior.
+To include test-only rules in dedicated test builds, pass:
+
+- `--build-arg SCHEMATRON_INCLUDE_GLOB=tests/rules/procedural_smoke.sch`

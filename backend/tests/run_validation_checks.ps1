@@ -18,6 +18,40 @@ $ResultsDir = Join-Path $TestsRoot "results"
 
 New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null
 
+function Wait-BackendReady {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContainerName,
+        [Parameter(Mandatory = $true)][int]$Port,
+        [int]$MaxAttempts = 120,
+        [int]$SleepMilliseconds = 500
+    )
+
+    for ($i = 0; $i -lt $MaxAttempts; $i++) {
+        try {
+            $response = Invoke-WebRequest -UseBasicParsing -Uri "http://localhost:$Port/docs" -TimeoutSec 2
+            if ($response.StatusCode -eq 200) {
+                return
+            }
+        }
+        catch {
+        }
+
+        Start-Sleep -Milliseconds $SleepMilliseconds
+    }
+
+    $containerState = docker ps -a --filter "name=$ContainerName" --format "{{.Status}}"
+    $logTail = "(not available)"
+    try {
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        $logTail = ((docker logs --tail 30 $ContainerName 2>&1) | Out-String).Trim()
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    throw "Backend did not become ready on port $Port. Container status: $containerState`nRecent logs:`n$logTail"
+}
+
 function Normalize-Json {
     param([Parameter(Mandatory = $true)][string]$Json)
     return ($Json | ConvertFrom-Json | ConvertTo-Json -Depth 100 -Compress)
@@ -67,23 +101,7 @@ Write-Host "Starting container: $ContainerName on port $Port"
 docker run --name $ContainerName -d -p "$Port`:8000" $ImageTag | Out-Null
 
 try {
-    $ready = $false
-    for ($i = 0; $i -lt 40; $i++) {
-        try {
-            $response = Invoke-WebRequest -UseBasicParsing -Uri "http://localhost:$Port/docs" -TimeoutSec 2
-            if ($response.StatusCode -eq 200) {
-                $ready = $true
-                break
-            }
-        }
-        catch {
-            Start-Sleep -Milliseconds 500
-        }
-    }
-
-    if (-not $ready) {
-        throw "Backend did not become ready on port $Port."
-    }
+    Wait-BackendReady -ContainerName $ContainerName -Port $Port
 
     $cases = @(
         "invalid_malformed",

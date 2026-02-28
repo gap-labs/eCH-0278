@@ -16,17 +16,24 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 	PYTHONUNBUFFERED=1 \
 	PATH="/opt/venv/bin:$PATH"
 
+ARG SCHEMATRON_INCLUDE_GLOB=
+ARG SCHEMATRON_BASE_INCLUDE_GLOB=schematron/rules/*.sch
+
 WORKDIR /app
 
 COPY tools/compile_schematron.py tools/compile_schematron.py
 COPY schematron/ schematron/
+COPY tests/rules/ tests/rules/
 
 RUN mkdir -p app/generated/schematron \
-	&& if find schematron -type f -name '*.sch' | grep -q .; then \
+	&& if find schematron tests/rules -type f -name '*.sch' | grep -q .; then \
 		python tools/compile_schematron.py \
-			--source-dir schematron \
+			--source-dir . \
 			--output-dir app/generated/schematron \
-			--compiler-xsl schematron/schxslt2-1.9/transpile.xsl; \
+			--compiler-xsl schematron/schxslt2-1.9/transpile.xsl \
+			${SCHEMATRON_BASE_INCLUDE_GLOB:+ --include-glob "$SCHEMATRON_BASE_INCLUDE_GLOB"} \
+			${SCHEMATRON_INCLUDE_GLOB:+ --include-glob "$SCHEMATRON_INCLUDE_GLOB"} \
+			; \
 	else \
 		echo "No .sch files found. Skipping Schematron compilation."; \
 	fi

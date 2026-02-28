@@ -40,6 +40,10 @@ jobs:
           echo "backend_image=${{ secrets.GKE_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gap-repository/ech-0278-backend:${{ github.sha }}" >> "$GITHUB_OUTPUT"
           echo "frontend_image=${{ secrets.GKE_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gap-repository/ech-0278-frontend:${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
+      - name: Guard vendored schemas
+        shell: pwsh
+        run: ./backend/tools/check_schema_vendor.ps1
+
       - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:

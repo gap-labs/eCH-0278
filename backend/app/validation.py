@@ -1,4 +1,5 @@
 import tempfile
+import time
 from pathlib import Path
 from threading import Lock
 from xml.etree import ElementTree as ET
@@ -9,13 +10,12 @@ from app.xml_utils import parse_xml_once
 
 
 SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schema" / "eCH-0278-1-0.xsd"
+VENDORED_SCHEMA_DIR = Path(__file__).resolve().parents[1] / "schema" / "vendor"
 GENERATED_SCHEMATRON_DIR = Path(__file__).resolve().parent / "generated" / "schematron"
 SVRL_NS = {"svrl": "http://purl.oclc.org/dsdl/svrl"}
 
-try:
-    SCHEMA = xmlschema.XMLSchema(str(SCHEMA_PATH))
-except Exception as exc:
-    raise RuntimeError(f"Failed to load XSD schema at {SCHEMA_PATH}: {exc}") from exc
+_schema_lock = Lock()
+_schema: xmlschema.XMLSchema | None = None
 
 
 _procedural_lock = Lock()
@@ -23,6 +23,51 @@ _procedural_initialized = False
 _procedural_init_error: str | None = None
 _procedural_processor: PySaxonProcessor | None = None
 _procedural_executables: list[dict] = []
+
+
+def _schema_locations_from_vendor() -> list[tuple[str, str]]:
+    if not VENDORED_SCHEMA_DIR.exists():
+        return []
+
+    locations: dict[str, str] = {}
+    for schema_file in sorted(VENDORED_SCHEMA_DIR.rglob("*.xsd")):
+        try:
+            schema_root = ET.parse(schema_file).getroot()
+        except ET.ParseError:
+            continue
+
+        target_namespace = schema_root.attrib.get("targetNamespace")
+        if target_namespace and target_namespace not in locations:
+            locations[target_namespace] = str(schema_file)
+
+    return list(locations.items())
+
+
+def _get_schema() -> xmlschema.XMLSchema:
+    global _schema
+
+    if _schema is not None:
+        return _schema
+
+    with _schema_lock:
+        if _schema is not None:
+            return _schema
+
+        last_error: Exception | None = None
+        schema_locations = _schema_locations_from_vendor()
+        for attempt in range(1, 4):
+            try:
+                if schema_locations:
+                    _schema = xmlschema.XMLSchema(str(SCHEMA_PATH), locations=schema_locations)
+                else:
+                    _schema = xmlschema.XMLSchema(str(SCHEMA_PATH))
+                return _schema
+            except Exception as exc:
+                last_error = exc
+                if attempt < 3:
+                    time.sleep(1)
+
+        raise RuntimeError(f"Failed to load XSD schema at {SCHEMA_PATH}: {last_error}") from last_error
 
 
 def _format_validation_error(error: object) -> str:
@@ -272,8 +317,9 @@ def validate_xml(xml_bytes: bytes, procedural: bool = False) -> dict:
         )
 
     try:
+        schema = _get_schema()
         validation_errors = [
-            _format_validation_error(error) for error in SCHEMA.iter_errors(xml_bytes)
+            _format_validation_error(error) for error in schema.iter_errors(xml_bytes)
         ]
     except Exception as exc:
         if isinstance(exc, ET.ParseError):
